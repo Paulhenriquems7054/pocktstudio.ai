@@ -960,92 +960,6 @@ const ChatModal = ({ isOpen, onClose, chatHistory, chatInput, setChatInput, isLo
     );
 };
 
-// UI: Settings Modal
-const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey, apiKeyError, onSave, onClear }) => {
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-700"
-            >
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                        ⚙️ Configurações
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
-                            🔑 Chave da API do Google Gemini
-                        </label>
-                        <input
-                            type="password"
-                            value={apiKey}
-                            onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="Cole sua chave API aqui..."
-                            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                        />
-                        {apiKeyError && (
-                            <p className="text-red-400 text-sm mt-2">{apiKeyError}</p>
-                        )}
-                        <p className="text-gray-400 text-xs mt-2">
-                            Obtenha sua chave gratuita em: 
-                            <a 
-                                href="https://makersuite.google.com/app/apikey" 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-yellow-400 hover:text-yellow-300 ml-1"
-                            >
-                                Google AI Studio
-                            </a>
-                        </p>
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                        <button
-                            onClick={onSave}
-                            className="flex-1 bg-yellow-400 text-black font-semibold py-3 px-4 rounded-xl hover:bg-yellow-300 transition-colors"
-                        >
-                            💾 Salvar
-                        </button>
-                        <button
-                            onClick={onClear}
-                            className="px-4 py-3 bg-gray-700 text-gray-300 rounded-xl hover:bg-gray-600 transition-colors"
-                        >
-                            🗑️ Limpar
-                        </button>
-                    </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-gray-800 rounded-xl">
-                    <h3 className="text-sm font-semibold text-white mb-2">ℹ️ Informações</h3>
-                    <ul className="text-xs text-gray-400 space-y-1">
-                        <li>• Sua chave é salva localmente no navegador</li>
-                        <li>• Nunca compartilhamos suas chaves</li>
-                        <li>• A chave é necessária para gerar imagens</li>
-                        <li>• Você pode alterá-la a qualquer momento</li>
-                    </ul>
-                </div>
-            </motion.div>
-        </div>
-    );
-};
-
-
 // UI: RadioPill Modernizado
 const RadioPill = ({ name, value, label, checked, onChange }) => (
     <label className={`cursor-pointer px-3 py-1.5 text-sm rounded-full transition-colors font-semibold 
@@ -1220,6 +1134,9 @@ const HistoryPanel = ({ isOpen, onClose, history, onClearHistory, onEdit, onDele
 };
 
 const App = () => {
+    // Chave da API do Google Gemini
+    const GEMINI_API_KEY = 'AIzaSyCjwufovXiyRvoNdUJIawZlEpBsLlaT2Hw';
+    
     // Estado principal
     const [uploadedImage, setUploadedImage] = useState(null);
     const [generatedImages, setGeneratedImages] = useState([]);
@@ -1294,11 +1211,6 @@ const App = () => {
     ]);
     const [chatInput, setChatInput] = useState('');
     const [isChatLoading, setIsChatLoading] = useState(false);
-
-    // --- SETTINGS STATE ---
-    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-    const [apiKey, setApiKey] = useState('');
-    const [apiKeyError, setApiKeyError] = useState('');
     
     // --- HISTORY NOTIFICATION STATE ---
     const [historyNotification, setHistoryNotification] = useState('');
@@ -1316,14 +1228,6 @@ const App = () => {
         } catch (e) {
             console.error("Não foi possível carregar o histórico:", e);
             setHistory([]);
-        }
-    }, []);
-
-    // Carregar API Key do localStorage
-    useEffect(() => {
-        const storedApiKey = localStorage.getItem('pocketStudioApiKey');
-        if (storedApiKey) {
-            setApiKey(storedApiKey);
         }
     }, []);
 
@@ -1863,39 +1767,6 @@ const App = () => {
         },
     }), []);
 
-    // --- SETTINGS FUNCTIONS ---
-    const handleSaveApiKey = () => {
-        if (!apiKey.trim()) {
-            setApiKeyError('Por favor, insira uma chave da API válida.');
-            return;
-        }
-        
-        // Validação mais flexível: aceita qualquer chave com pelo menos 20 caracteres
-        if (apiKey.trim().length < 20) {
-            setApiKeyError('A chave da API parece muito curta. Verifique se copiou corretamente.');
-            return;
-        }
-        
-        try {
-            localStorage.setItem('pocketStudioApiKey', apiKey);
-            setApiKeyError('');
-            setIsSettingsModalOpen(false);
-            setError(null);
-        } catch (e) {
-            setApiKeyError('Erro ao salvar a chave da API.');
-        }
-    };
-
-    const handleClearApiKey = () => {
-        setApiKey('');
-        localStorage.removeItem('pocketStudioApiKey');
-        setApiKeyError('');
-    };
-
-    const getApiKey = () => {
-        return apiKey || 'AIzaSyCjwufovXiyRvoNdUJIawZlEpBsLlaT2Hw';
-    };
-
     // Função para adicionar imagem ao histórico automaticamente
     const addImageToHistory = (imageData) => {
         const historyEntry = {
@@ -2010,7 +1881,7 @@ const App = () => {
 
             const payload = { contents: [{ parts }] };
     
-            const imageUrl = await generateImageWithRetry(payload, getApiKey());
+            const imageUrl = await generateImageWithRetry(payload, GEMINI_API_KEY);
     
             setGeneratedImages(prev => prev.map((img, index) => {
                 if (index === imageIndex) {
@@ -2117,7 +1988,7 @@ const App = () => {
             ];
 
             const payload = { contents: [{ parts }] };
-            const newImageUrl = await generateImageWithRetry(payload, getApiKey());
+            const newImageUrl = await generateImageWithRetry(payload, GEMINI_API_KEY);
 
             setGeneratedImages(prev => prev.map((img, i) =>
                 i === index ? { 
@@ -2149,8 +2020,7 @@ const App = () => {
             contents: [{ parts: [{ text: promptToEnhance }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
         };
-        const apiKey = getApiKey();
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
         try {
             const result = await fetchWithRetry(apiUrl, {
@@ -2211,8 +2081,7 @@ const App = () => {
                 systemInstruction: { parts: [{ text: CHAT_SYSTEM_PROMPT }] }
             };
 
-            const apiKey = getApiKey();
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
             const result = await fetchWithRetry(apiUrl, {
                 method: 'POST',
@@ -2269,7 +2138,7 @@ const App = () => {
                 ];
                 
                 const payload = { contents: [{ parts }] };
-                const imageUrl = await generateImageWithRetry(payload, getApiKey());
+                const imageUrl = await generateImageWithRetry(payload, GEMINI_API_KEY);
 
                 const successImage = { ...placeholder, status: 'success', imageUrl };
                 setGeneratedImages([successImage]);
@@ -2430,7 +2299,7 @@ const App = () => {
 
                 const payload = { contents: [{ parts }] };
 
-                const imageUrl = await generateImageWithRetry(payload, getApiKey());
+                const imageUrl = await generateImageWithRetry(payload, GEMINI_API_KEY);
 
                 setGeneratedImages(prev => prev.map((img, index) => {
                     if (index === i) {
@@ -2771,17 +2640,6 @@ const App = () => {
                 onSend={handleChatSubmit}
             />
 
-            {/* Modal de Configurações */}
-            <SettingsModal
-                isOpen={isSettingsModalOpen}
-                onClose={() => setIsSettingsModalOpen(false)}
-                apiKey={apiKey}
-                setApiKey={setApiKey}
-                apiKeyError={apiKeyError}
-                onSave={handleSaveApiKey}
-                onClear={handleClearApiKey}
-            />
-
             {/* Notificação de Histórico */}
             {historyNotification && (
                 <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg shadow-2xl animate-fade-in-down">
@@ -2800,24 +2658,6 @@ const App = () => {
                     title="Assistente de Prompts"
                 >
                     <IconChat />
-                </button>
-                {/* Botão de Configurações */}
-                <button
-                    onClick={() => setIsSettingsModalOpen(true)}
-                    className={`p-3 rounded-full transition-all shadow-lg border relative backdrop-blur-sm ${
-                        apiKey 
-                            ? 'bg-green-800/80 hover:bg-green-700/80 border-green-600 hover:border-green-500' 
-                            : 'bg-gray-900/70 hover:bg-gray-800/80 border-gray-700 hover:border-gray-600'
-                    }`}
-                    title={apiKey ? "API Key Configurada" : "Configurar API Key"}
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${apiKey ? 'text-green-300 hover:text-green-200' : 'text-gray-300 hover:text-white'}`}>
-                        <circle cx="12" cy="12" r="3" />
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                    </svg>
-                    {apiKey && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900"></div>
-                    )}
                 </button>
             </div>
 
