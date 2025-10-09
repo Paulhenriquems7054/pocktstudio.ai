@@ -1302,6 +1302,9 @@ const App = () => {
     const [apiKey, setApiKey] = useState('');
     const [apiKeyError, setApiKeyError] = useState('');
     
+    // --- HISTORY NOTIFICATION STATE ---
+    const [historyNotification, setHistoryNotification] = useState('');
+    
     // Configuração do Sistema Gemini para o Chat
     const CHAT_SYSTEM_PROMPT = "Você é um engenheiro de prompts de IA com 30 anos de experiência, especialista em criar prompts de imagem de qualidade profissional. Seu objetivo é ajudar o usuário a transformar uma ideia em um prompt detalhado. Mantenha um tom amigável e conversacional. Use listas numeradas curtas para dar sugestões de estilo/detalhes (ex: 'Que tal um estilo... 1. Cyberpunk 2. Pintura a óleo 3. Fantasia'). Depois de uma resposta do usuário ou sugestão, **sempre pergunte**: 'Gostaria de entrar em mais detalhes sobre [último ponto mencionado, ex: iluminação/cor] ou posso criar o prompt final agora?' Ao gerar o prompt final, forneça-o diretamente, sem nenhuma introdução (ex: 'Aqui está o prompt...')";
 
@@ -1894,6 +1897,39 @@ const App = () => {
         return apiKey || 'AIzaSyAM26m25JiBAWoQfDo3ND05WzopM6bc3pU';
     };
 
+    // Função para adicionar imagem ao histórico automaticamente
+    const addImageToHistory = (imageData) => {
+        const historyEntry = {
+            id: Date.now() + Math.random(),
+            timestamp: new Date().toISOString(),
+            imageUrl: imageData.imageUrl,
+            template: imageData.template,
+            prompt: imageData.prompt,
+            era: imageData.era,
+            settings: getSettingsForHistory(),
+            ...imageData
+        };
+
+        setHistory(prevHistory => {
+            const newHistory = [historyEntry, ...prevHistory];
+            const limitedHistory = newHistory.slice(0, 50); // Limita a 50 itens
+            
+            try {
+                localStorage.setItem('pictureMeHistory', JSON.stringify(limitedHistory));
+                
+                // Mostrar notificação de sucesso
+                setHistoryNotification('✅ Imagem salva no histórico!');
+                setTimeout(() => setHistoryNotification(''), 3000);
+            } catch (e) {
+                console.error("Erro ao salvar no histórico:", e);
+                setHistoryNotification('❌ Erro ao salvar no histórico');
+                setTimeout(() => setHistoryNotification(''), 3000);
+            }
+            
+            return limitedHistory;
+        });
+    };
+
     const regenerateImageAtIndex = async (imageIndex) => {
         const imageToRegenerate = generatedImages[imageIndex];
         if (!imageToRegenerate) return;
@@ -1977,9 +2013,21 @@ const App = () => {
     
             const imageUrl = await generateImageWithRetry(payload);
     
-            setGeneratedImages(prev => prev.map((img, index) =>
-                index === imageIndex ? { ...img, status: 'success', imageUrl } : img
-            ));
+            setGeneratedImages(prev => prev.map((img, index) => {
+                if (index === imageIndex) {
+                    const updatedImg = { ...img, status: 'success', imageUrl };
+                    // Adicionar ao histórico automaticamente
+                    addImageToHistory({
+                        imageUrl,
+                        template: img.template,
+                        prompt: img.prompt || prompt.base,
+                        era: img.id,
+                        proportion: img.proportion
+                    });
+                    return updatedImg;
+                }
+                return img;
+            }));
     
         } catch (err) {
             console.error(`A nova geração falhou para ${prompt.id}:`, err);
@@ -2224,7 +2272,17 @@ const App = () => {
                 const payload = { contents: [{ parts }] };
                 const imageUrl = await generateImageWithRetry(payload);
 
-                setGeneratedImages([{ ...placeholder, status: 'success', imageUrl }]);
+                const successImage = { ...placeholder, status: 'success', imageUrl };
+                setGeneratedImages([successImage]);
+                
+                // Adicionar ao histórico automaticamente
+                addImageToHistory({
+                    imageUrl,
+                    template: placeholder.template,
+                    prompt: placeholder.prompt || 'Troca de Roupa',
+                    era: placeholder.id,
+                    proportion: placeholder.proportion
+                });
             } catch (err) {
                  console.error(`Falha na troca de roupa:`, err);
                  setGeneratedImages([{ ...placeholder, status: 'failed' }]);
@@ -2375,9 +2433,21 @@ const App = () => {
 
                 const imageUrl = await generateImageWithRetry(payload);
 
-                setGeneratedImages(prev => prev.map((img, index) => 
-                    index === i ? { ...img, status: 'success', imageUrl } : img
-                ));
+                setGeneratedImages(prev => prev.map((img, index) => {
+                    if (index === i) {
+                        const updatedImg = { ...img, status: 'success', imageUrl };
+                        // Adicionar ao histórico automaticamente
+                        addImageToHistory({
+                            imageUrl,
+                            template: img.template,
+                            prompt: img.prompt || p.base,
+                            era: img.id,
+                            proportion: img.proportion
+                        });
+                        return updatedImg;
+                    }
+                    return img;
+                }));
 
             } catch (err) {
                 console.error(`Falha ao gerar imagem para ${p.id} após todas as tentativas:`, err);
@@ -2706,6 +2776,13 @@ const App = () => {
                 onSave={handleSaveApiKey}
                 onClear={handleClearApiKey}
             />
+
+            {/* Notificação de Histórico */}
+            {historyNotification && (
+                <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg shadow-2xl animate-fade-in-down">
+                    {historyNotification}
+                </div>
+            )}
             
             <div className="fixed top-6 right-6 z-30 flex flex-col items-center space-y-4">
                 <button onClick={() => setIsHistoryOpen(true)} className="p-3 bg-gray-900/70 backdrop-blur-sm rounded-full text-gray-300 hover:text-white hover:bg-gray-800/80 transition-all shadow-lg border border-gray-700" title="Histórico">
