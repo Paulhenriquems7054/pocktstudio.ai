@@ -22,3 +22,15 @@ Thumbs.db
 # Logs
 logs
 *.log
+
+# Build artifacts
+dist
+build
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
