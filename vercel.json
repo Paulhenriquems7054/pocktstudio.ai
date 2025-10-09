@@ -2,18 +2,14 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/landing.html"
+      "source": "/",
+      "destination": "/landing.html"
     },
     {
-      "src": "/app",
-      "dest": "/app.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/app",
+      "destination": "/app.html"
     }
   ],
   "headers": [
