@@ -1,0 +1,4 @@
+# Redirects for Netlify
+/ /landing.html 200
+/app /app.html 200
+/* /index.html 200

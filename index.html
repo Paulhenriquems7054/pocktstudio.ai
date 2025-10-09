@@ -33,16 +33,14 @@
     </style>
 </head>
 <body>
-    <!-- Redirect to Landing Page -->
-    <script>
-        window.location.href = '/landing.html';
-    </script>
-    
-    <!-- Fallback content -->
-    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
-        <h1 style="color: #ffd700; font-size: 2rem; margin-bottom: 1rem;">Pocket Studio</h1>
-        <p style="color: #e0e0e0;">Carregando...</p>
-        <a href="/landing.html" style="color: #ffd700; text-decoration: none; margin-top: 1rem;">Clique aqui se não for redirecionado automaticamente</a>
+    <!-- Landing Page Content -->
+    <div style="min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; text-align: center; padding: 2rem;">
+        <h1 style="font-size: 4rem; font-weight: 900; color: #ffd700; margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);">POCKET STUDIO</h1>
+        <p style="font-size: 1.5rem; margin-bottom: 2rem; color: #e0e0e0;">O estúdio fotográfico que cabe no seu bolso</p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+            <a href="/app.html" style="padding: 1rem 2rem; background: linear-gradient(45deg, #ffd700, #ffed4e); color: #1a1a1a; text-decoration: none; border-radius: 50px; font-weight: 600; transition: all 0.3s ease;">🚀 Começar Agora</a>
+            <a href="/landing.html" style="padding: 1rem 2rem; background: transparent; color: #ffd700; text-decoration: none; border: 2px solid #ffd700; border-radius: 50px; font-weight: 600; transition: all 0.3s ease;">📱 Ver Apresentação</a>
+        </div>
     </div>
     
     <div id="root"></div>
