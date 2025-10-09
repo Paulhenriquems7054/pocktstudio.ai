@@ -2719,34 +2719,31 @@ const App = () => {
                 >
                     <IconChat />
                 </button>
+                {/* Botão de Configurações */}
+                <button
+                    onClick={() => setIsSettingsModalOpen(true)}
+                    className={`p-3 rounded-full transition-all shadow-lg border relative backdrop-blur-sm ${
+                        apiKey 
+                            ? 'bg-green-800/80 hover:bg-green-700/80 border-green-600 hover:border-green-500' 
+                            : 'bg-gray-900/70 hover:bg-gray-800/80 border-gray-700 hover:border-gray-600'
+                    }`}
+                    title={apiKey ? "API Key Configurada" : "Configurar API Key"}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${apiKey ? 'text-green-300 hover:text-green-200' : 'text-gray-300 hover:text-white'}`}>
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    {apiKey && (
+                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900"></div>
+                    )}
+                </button>
             </div>
 
 
             <div className="bg-black text-gray-200 min-h-screen flex flex-col items-center p-4 pb-20">
                 <div className="w-full max-w-6xl mx-auto">
                     
-                    <header className="relative text-center my-12">
-                        {/* Botão de Configurações */}
-                        <div className="absolute top-0 right-0">
-                            <button
-                                onClick={() => setIsSettingsModalOpen(true)}
-                                className={`p-3 rounded-full transition-colors border relative ${
-                                    apiKey 
-                                        ? 'bg-green-800 hover:bg-green-700 border-green-600 hover:border-green-500' 
-                                        : 'bg-gray-800 hover:bg-gray-700 border-gray-700 hover:border-gray-600'
-                                }`}
-                                title={apiKey ? "API Key Configurada" : "Configurar API Key"}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${apiKey ? 'text-green-300 hover:text-green-200' : 'text-gray-300 hover:text-white'}`}>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                                </svg>
-                                {apiKey && (
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900"></div>
-                                )}
-                            </button>
-                        </div>
-
+                    <header className="text-center my-12">
                         <h1 className="text-6xl md:text-7xl font-caveat text-white tracking-tight">
                             Pocket<span className="text-yellow-400">Studio</span>
                         </h1>
