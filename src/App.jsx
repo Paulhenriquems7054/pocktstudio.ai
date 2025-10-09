@@ -11,7 +11,7 @@ const toBase64 = file => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
-const fetchWithRetry = (url, options, retries = 5, backoff = 1000) => {
+const fetchWithRetry = (url, options, retries = 3, backoff = 2000) => {
     return new Promise((resolve, reject) => {
         const attempt = async (retryCount, delay) => {
             try {
@@ -19,25 +19,31 @@ const fetchWithRetry = (url, options, retries = 5, backoff = 1000) => {
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     console.error('Erro de API:', errorData);
-                    if (response.status === 429 && retryCount > 0) {
+                    
+                    // Se for erro 429, verificar se é cota excedida
+                    if (response.status === 429) {
                         const errorMessage = errorData.error?.message || '';
+                        
+                        // Se a COTA foi excedida, NÃO tentar novamente
                         if (errorMessage.includes('quota') || errorMessage.includes('Quota exceeded')) {
-                            console.log(`Cota da API excedida. Tentando novamente em ${delay / 1000}s...`);
-                        } else {
-                            console.log(`Limite de taxa atingido. Tentando novamente em ${delay / 1000}s...`);
+                            console.error('🚫 COTA DA API EXCEDIDA - Parando tentativas');
+                            reject(new Error(`❌ Cota da API Excedida!\n\nVocê atingiu o limite gratuito do Google Gemini.\n\n📌 Soluções:\n• Aguarde algumas horas para a cota resetar\n• Crie uma nova chave API em: https://makersuite.google.com/app/apikey\n• Considere fazer upgrade do seu plano\n\nDetalhes: ${errorMessage}`));
+                            return; // Importante: retornar para não continuar
                         }
-                        setTimeout(() => attempt(retryCount - 1, delay * 2), delay);
-                    } else if (response.status === 401) {
-                        reject(new Error(`A solicitação da API falhou com o status 401: Não autorizado. Verifique se sua chave de API é válida.`));
-                    } else if (response.status === 429) {
-                        const errorMessage = errorData.error?.message || '';
-                        if (errorMessage.includes('quota') || errorMessage.includes('Quota exceeded')) {
-                            reject(new Error(`Cota da API excedida. Você atingiu o limite gratuito do Google Gemini. Por favor, aguarde ou considere fazer upgrade do seu plano. Detalhes: ${errorMessage}`));
+                        
+                        // Se for apenas limite de taxa (rate limit), tentar novamente COM MENOS TENTATIVAS
+                        if (retryCount > 0) {
+                            console.log(`⚠️ Limite de taxa atingido. Aguardando ${delay / 1000}s antes de tentar novamente...`);
+                            setTimeout(() => attempt(retryCount - 1, delay * 3), delay); // Aumentar delay x3
                         } else {
-                            reject(new Error(`Limite de taxa atingido. Tente novamente em alguns minutos.`));
+                            reject(new Error(`Limite de taxa atingido. Aguarde alguns minutos e tente novamente.`));
                         }
+                        return;
                     }
-                    else {
+                    
+                    if (response.status === 401) {
+                        reject(new Error(`A solicitação da API falhou com o status 401: Não autorizado. Verifique se sua chave de API é válida.`));
+                    } else {
                         reject(new Error(`A solicitação da API falhou com o status ${response.status}: ${errorData.error?.message || 'Erro desconhecido'}`));
                     }
                 } else {
@@ -46,7 +52,7 @@ const fetchWithRetry = (url, options, retries = 5, backoff = 1000) => {
                     resolve(jsonResponse);
                 }
             } catch (error) {
-                if (retryCount > 0) {
+                if (retryCount > 0 && !error.message.includes('Cota da API')) {
                     console.log(`A solicitação falhou. Tentando novamente em ${delay / 1000}s...`, error);
                     setTimeout(() => attempt(retryCount - 1, delay * 2), delay);
                 } else {
