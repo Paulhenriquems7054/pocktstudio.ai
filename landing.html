@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket Studio - O Estúdio Fotográfico que Cabe no Seu Bolso</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/logo-512.png">
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="Transforme suas fotos simples em retratos profissionais usando IA — sem precisar de câmeras, luzes ou fundo branco.">
+    <meta name="theme-color" content="#1a1a1a">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Caveat:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><radialGradient id="bg" cx="50%" cy="30%" r="70%"><stop offset="0%" style="stop-color:%23ffd700;stop-opacity:0.1"/><stop offset="100%" style="stop-color:%23000000;stop-opacity:1"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23bg)"/></svg>');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+        
+        /* Logo Principal */
+        .logo-container {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: clamp(3rem, 8vw, 8rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: #ffd700;
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.5),
+                0 0 40px rgba(255, 215, 0, 0.3),
+                0 4px 8px rgba(0, 0, 0, 0.8);
+            position: relative;
+            display: inline-block;
+            transform: perspective(500px) rotateX(15deg);
+        }
+        
+        .logo::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+            transform: scaleY(-1);
+            z-index: -1;
+            filter: blur(2px);
+            opacity: 0.6;
+        }
+        
+        /* Subtítulo */
+        .subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-weight: 300;
+            margin-bottom: 3rem;
+            color: #e0e0e0;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Botões */
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1a1a1a;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #ffd700;
+            border: 2px solid #ffd700;
+        }
+        
+        .btn-secondary:hover {
+            background: #ffd700;
+            color: #1a1a1a;
+            transform: translateY(-2px);
+        }
+        
+        /* Features Grid */
+        .features {
+            padding: 5rem 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 3rem;
+            color: #ffd700;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+        
+        .feature-card p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        /* Stats Section */
+        .stats {
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #1a1a1a;
+        }
+        
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .stat {
+            padding: 1rem;
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 3rem 2rem;
+            background: #1a1a1a;
+            text-align: center;
+            border-top: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .footer p {
+            color: #888;
+            margin-bottom: 1rem;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-link {
+            color: #ffd700;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .social-link:hover {
+            transform: scale(1.2);
+            color: #ffed4e;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animações */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hero-content > * {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        
+        .hero-content > *:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .hero-content > *:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        .hero-content > *:nth-child(4) {
+            animation-delay: 0.6s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="logo-container">
+                <div class="logo">POCKET STUDIO</div>
+            </div>
+            <h1 class="subtitle">O estúdio fotográfico que cabe no seu bolso</h1>
+            <div class="cta-buttons">
+                <a href="/app.html" class="btn btn-primary">
+                    🚀 Começar Agora
+                </a>
+                <a href="#features" class="btn btn-secondary">
+                    📱 Ver Demo
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-container">
+            <h2>Transforme suas fotos com IA</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <h3>Mais de 30 Estilos</h3>
+                    <p>Viagem no tempo, editorial de moda, estilos artísticos e retratos cinematográficos. Sua criatividade não tem limites!</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🤖</span>
+                    <h3>IA Avançada</h3>
+                    <p>Powered by Google Gemini 2.0 Flash. Mantém suas características faciais enquanto transforma o estilo completamente.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <h3>PWA Nativo</h3>
+                    <p>Funciona offline, instalável como app nativo. Compatível com Android e iOS. Sem necessidade de app store!</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Geração Rápida</h3>
+                    <p>Transforme suas fotos em segundos. Interface intuitiva e controles profissionais para resultados incríveis.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">💾</span>
+                    <h3>Histórico Local</h3>
+                    <p>Salva suas criações automaticamente. Reutilize configurações anteriores e compartilhe facilmente.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Privacidade Total</h3>
+                    <p>Suas fotos nunca saem do seu dispositivo. Processamento local e histórico privado garantem sua segurança.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat">
+                <div class="stat-number">30+</div>
+                <div class="stat-label">Estilos Disponíveis</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Gratuito</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">5s</div>
+                <div class="stat-label">Tempo de Geração</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Criações Ilimitadas</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Pocket Studio. Feito com ❤️ e IA.</p>
+        <div class="social-links">
+            <a href="https://github.com/Paulhenriquems7054/pocktstudio.ai" class="social-link">🐙</a>
+            <a href="#" class="social-link">📧</a>
+            <a href="#" class="social-link">📱</a>
+        </div>
+    </footer>
+</body>
+</html>

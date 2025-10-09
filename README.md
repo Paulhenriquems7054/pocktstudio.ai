@@ -43,7 +43,10 @@ VITE_GEMINI_API_KEY=AIzaSyAM26m25JiBAWoQfDo3ND05WzopM6bc3pU
 npm run dev
 ```
 
-5. **Abra o navegador em:** `http://localhost:3000`
+5. **Abra o navegador em:**
+   - **Página de Apresentação:** `http://localhost:3000` (redireciona automaticamente)
+   - **App Direto:** `http://localhost:3000/app.html`
+   - **Landing Page:** `http://localhost:3000/landing.html`
 
 ## 🏗️ Build para Produção
 
@@ -78,7 +81,9 @@ Pocktstudio-main/
 │   ├── App.jsx              # Componente principal
 │   ├── main.jsx             # Ponto de entrada
 │   └── index.css            # Estilos globais
-├── index.html               # Template HTML
+├── index.html               # Página principal (redireciona para landing)
+├── landing.html             # Página de apresentação
+├── app.html                 # Acesso direto ao aplicativo
 ├── package.json             # Dependências
 ├── vite.config.js           # Configuração do Vite
 ├── tailwind.config.js       # Configuração do Tailwind
