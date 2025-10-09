@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API PRO - Google Gemini</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { 
+            color: #fbbf24; 
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .test-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #fbbf24;
+        }
+        .test-section h3 {
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+        .api-key-display {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #10b981;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        button {
+            background: #fbbf24;
+            color: #000;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(251, 191, 36, 0.3);
+        }
+        button:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(251, 191, 36, 0.4);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border-left: 4px solid #fbbf24;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .success {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .warning {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+        .status-pro { background: #fbbf24; color: #000; }
+        .status-free { background: #3b82f6; color: #fff; }
+        .status-error { background: #ef4444; color: #fff; }
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid #3b82f6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-box strong { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste API PRO - Google Gemini</h1>
+        <p class="subtitle">Testando chave API de conta PRO para geração de imagens</p>
+        
+        <div class="test-section">
+            <h3>🔑 Sua Chave API</h3>
+            <div class="api-key-display" id="apiKeyDisplay">AIzaSyCjwufovXiyRvoNdUJIawZlEpBsLlaT2Hw</div>
+            <span class="status-badge status-pro">CONTA PRO NÍVEL 1</span>
+        </div>
+
+        <div class="info-box">
+            <strong>ℹ️ Sobre este Teste:</strong><br>
+            Este teste verificará se sua chave API PRO está funcionando corretamente para:
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>✅ Modelos de texto (gemini-1.5-flash)</li>
+                <li>✅ Modelos de imagem (gemini-2.5-flash-image-preview)</li>
+                <li>✅ Limites de cota e billing</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Testes Disponíveis</h3>
+            <button onclick="testTextGeneration()">1️⃣ Testar Modelo de Texto</button>
+            <button onclick="testImageGeneration()">2️⃣ Testar Geração de Imagem (Texto para Imagem)</button>
+            <button onclick="testApiQuota()">3️⃣ Verificar Limites e Cota</button>
+            <button onclick="runAllTests()">🚀 Executar Todos os Testes</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyCjwufovXiyRvoNdUJIawZlEpBsLlaT2Hw';
+        
+        function addResult(html) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += html;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testTextGeneration() {
+            clearResults();
+            addResult(`
+                <div class="result">
+                    <h3>🧪 Teste 1: Modelo de Texto</h3>
+                    <p><strong>⏳ Testando...</strong> <span class="loader"></span></p>
+                </div>
+            `);
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                
+                const payload = {
+                    contents: [{
+                        parts: [{ text: "Responda apenas com 'OK' se você estiver funcionando corretamente." }]
+                    }]
+                };
+
+                const startTime = Date.now();
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const endTime = Date.now();
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(`Status ${response.status}: ${data.error?.message || 'Erro desconhecido'}`);
+                }
+
+                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta';
+
+                document.getElementById('results').innerHTML = `
+                    <div class="result success">
+                        <h3>✅ Teste 1: Modelo de Texto - SUCESSO</h3>
+                        <p><strong>Status:</strong> ${response.status} OK</p>
+                        <p><strong>Tempo de Resposta:</strong> ${endTime - startTime}ms</p>
+                        <p><strong>Modelo:</strong> gemini-1.5-flash</p>
+                        <p><strong>Resposta da IA:</strong> ${aiResponse}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Teste 1: Modelo de Texto - FALHOU</h3>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <pre>${error.stack || 'Stack trace não disponível'}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testImageGeneration() {
+            clearResults();
+            addResult(`
+                <div class="result">
+                    <h3>🧪 Teste 2: Geração de Imagem (Texto para Imagem)</h3>
+                    <p><strong>⏳ Testando modelo de imagem...</strong> <span class="loader"></span></p>
+                    <p style="color: #94a3b8; margin-top: 10px;">⚠️ Este teste pode levar 10-30 segundos...</p>
+                </div>
+            `);
+
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`;
+                
+                const payload = {
+                    contents: [{
+                        parts: [{ 
+                            text: "Crie uma imagem fotorrealista de um pôr do sol na praia com palmeiras."
+                        }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["TEXT", "IMAGE"]
+                    }
+                };
+
+                const startTime = Date.now();
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const endTime = Date.now();
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(`Status ${response.status}: ${data.error?.message || 'Erro desconhecido'}`);
+                }
+
+                const imagePart = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                
+                if (imagePart) {
+                    const imageData = imagePart.inlineData.data;
+                    const mimeType = imagePart.inlineData.mimeType;
+                    
+                    document.getElementById('results').innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Teste 2: Geração de Imagem - SUCESSO</h3>
+                            <p><strong>Status:</strong> ${response.status} OK</p>
+                            <p><strong>Tempo de Resposta:</strong> ${endTime - startTime}ms (${((endTime - startTime) / 1000).toFixed(2)}s)</p>
+                            <p><strong>Modelo:</strong> gemini-2.0-flash-exp</p>
+                            <p><strong>Imagem Gerada:</strong></p>
+                            <img src="data:${mimeType};base64,${imageData}" style="max-width: 100%; border-radius: 10px; margin-top: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+                            <p style="margin-top: 15px;"><strong>✅ Sua API PRO está FUNCIONANDO para geração de imagens!</strong></p>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('results').innerHTML = `
+                        <div class="result warning">
+                            <h3>⚠️ Teste 2: Geração de Imagem - Resposta Inesperada</h3>
+                            <p><strong>Status:</strong> ${response.status} OK</p>
+                            <p><strong>Problema:</strong> API respondeu, mas sem dados de imagem</p>
+                            <p><strong>Possível causa:</strong> Modelo não suporta geração de imagem ou formato incorreto</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Teste 2: Geração de Imagem - FALHOU</h3>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <p style="margin-top: 10px;">Este modelo pode não estar disponível ou sua conta pode não ter acesso.</p>
+                        <pre>${error.stack || 'Stack trace não disponível'}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testApiQuota() {
+            clearResults();
+            addResult(`
+                <div class="result">
+                    <h3>🧪 Teste 3: Verificando Limites e Cota</h3>
+                    <p><strong>⏳ Consultando informações da API...</strong> <span class="loader"></span></p>
+                </div>
+            `);
+
+            try {
+                // Teste de múltiplas requisições para verificar limites
+                const tests = [
+                    { name: 'gemini-1.5-flash', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash?key=${API_KEY}` },
+                    { name: 'gemini-1.5-pro', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro?key=${API_KEY}` },
+                    { name: 'gemini-2.0-flash-exp', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp?key=${API_KEY}` }
+                ];
+
+                let results = '<div class="result success"><h3>✅ Teste 3: Modelos Disponíveis</h3>';
+                
+                for (const test of tests) {
+                    try {
+                        const response = await fetch(test.url);
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            results += `
+                                <div style="margin: 15px 0; padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                                    <p><strong>✅ ${test.name}</strong></p>
+                                    <p style="font-size: 12px; color: #94a3b8;">
+                                        Suporta: ${data.supportedGenerationMethods?.join(', ') || 'N/A'}
+                                    </p>
+                                </div>
+                            `;
+                        } else {
+                            results += `
+                                <div style="margin: 15px 0; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                                    <p><strong>❌ ${test.name}</strong></p>
+                                    <p style="font-size: 12px; color: #ef4444;">${data.error?.message || 'Não disponível'}</p>
+                                </div>
+                            `;
+                        }
+                    } catch (e) {
+                        results += `
+                            <div style="margin: 15px 0; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
+                                <p><strong>❌ ${test.name}</strong></p>
+                                <p style="font-size: 12px; color: #ef4444;">Erro ao consultar</p>
+                            </div>
+                        `;
+                    }
+                }
+
+                results += '</div>';
+                document.getElementById('results').innerHTML = results;
+
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Teste 3: Verificação de Limites - FALHOU</h3>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function runAllTests() {
+            clearResults();
+            addResult(`
+                <div class="result">
+                    <h3>🚀 Executando Todos os Testes</h3>
+                    <p><strong>⏳ Por favor, aguarde...</strong> <span class="loader"></span></p>
+                </div>
+            `);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testTextGeneration();
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            addResult(`<div class="result"><p><strong>⏳ Próximo teste...</strong></p></div>`);
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testImageGeneration();
+            
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            addResult(`<div class="result"><p><strong>⏳ Último teste...</strong></p></div>`);
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testApiQuota();
+        }
+
+        // Executar teste automático ao carregar a página
+        window.addEventListener('load', () => {
+            console.log('🔑 Chave API PRO detectada:', API_KEY);
+            console.log('✅ Página carregada. Clique nos botões para testar.');
+        });
+    </script>
+</body>
+</html>
+
