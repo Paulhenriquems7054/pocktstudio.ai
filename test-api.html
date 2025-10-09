@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API Google Gemini</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { color: #fbbf24; margin-bottom: 30px; }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+            font-weight: 600;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #fbbf24;
+            color: #000;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #fbbf24;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .success {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de API Google Gemini</h1>
+        
+        <div class="input-group">
+            <label for="apiKey">Chave API do Google Gemini:</label>
+            <input type="text" id="apiKey" value="AIzaSyD6q7amR6G__3e08bkZ0yGDcHx2eXcoy1g" placeholder="Cole sua chave API aqui">
+        </div>
+
+        <div class="input-group">
+            <label for="prompt">Prompt de Teste (texto apenas):</label>
+            <textarea id="prompt" rows="3" placeholder="Ex: Crie uma imagem de um gato astronauta">Crie uma imagem fotorrealista de um pôr do sol em uma praia tropical</textarea>
+        </div>
+
+        <button onclick="testTextAPI()">🧪 Testar API (Texto - Sem Imagem)</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function testTextAPI() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const prompt = document.getElementById('prompt').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            if (!apiKey) {
+                resultDiv.innerHTML = '<div class="result error"><strong>❌ Erro:</strong> Por favor, insira uma chave API.</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="result"><strong>⏳ Testando...</strong> <span class="loader"></span></div>';
+
+            try {
+                // Teste 1: Modelo de texto simples (gemini-1.5-flash)
+                console.log('🧪 Testando modelo gemini-1.5-flash...');
+                const textUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                
+                const textPayload = {
+                    contents: [{
+                        parts: [{ text: "Olá! Este é um teste simples. Responda apenas com 'OK' se você estiver funcionando." }]
+                    }]
+                };
+
+                const textResponse = await fetch(textUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(textPayload)
+                });
+
+                const textData = await textResponse.json();
+
+                if (!textResponse.ok) {
+                    throw new Error(`Status ${textResponse.status}: ${textData.error?.message || 'Erro desconhecido'}`);
+                }
+
+                // Teste 2: Verificar informações da API
+                const modelInfoUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash?key=${apiKey}`;
+                const infoResponse = await fetch(modelInfoUrl);
+                const infoData = await infoResponse.json();
+
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ API Funcionando!</h3>
+                        <p><strong>Modelo testado:</strong> gemini-1.5-flash</p>
+                        <p><strong>Status:</strong> ${textResponse.status} (OK)</p>
+                        <p><strong>Resposta da IA:</strong></p>
+                        <pre>${JSON.stringify(textData, null, 2)}</pre>
+                        
+                        <h4 style="margin-top: 20px;">📊 Informações do Modelo:</h4>
+                        <pre>${JSON.stringify(infoData, null, 2)}</pre>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(16, 185, 129, 0.2); border-radius: 8px; border: 1px solid #10b981;">
+                            <strong>✅ Conclusão:</strong><br>
+                            Sua chave API está válida e funcionando para modelos de texto!<br><br>
+                            <strong>⚠️ Nota sobre Imagens:</strong><br>
+                            O modelo <code>gemini-2.5-flash-image-preview</code> pode ter limites diferentes.<br>
+                            Considere usar <code>gemini-1.5-flash</code> ou <code>gemini-1.5-pro</code> com descrições de texto.
+                        </div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Erro no teste:', error);
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Erro no Teste</h3>
+                        <p><strong>Mensagem:</strong> ${error.message}</p>
+                        <pre>${error.stack || 'Stack trace não disponível'}</pre>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(239, 68, 68, 0.2); border-radius: 8px; border: 1px solid #ef4444;">
+                            <strong>📋 Possíveis Causas:</strong><br>
+                            1. <strong>Cota Excedida:</strong> Você usou todos os créditos gratuitos<br>
+                            2. <strong>API Key Inválida:</strong> A chave pode estar incorreta<br>
+                            3. <strong>Projeto sem Billing:</strong> Alguns modelos requerem billing ativo<br>
+                            4. <strong>Região Bloqueada:</strong> Sua região pode não ter acesso<br><br>
+                            
+                            <strong>🔧 Próximos Passos:</strong><br>
+                            • Verifique em: <a href="https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com" target="_blank" style="color: #fbbf24;">Google Cloud Console</a><br>
+                            • Veja seu uso em: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #fbbf24;">AI Studio</a><br>
+                            • Configure billing se necessário
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
+
