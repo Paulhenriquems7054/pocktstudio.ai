@@ -596,7 +596,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
                 streamRef.current = stream;
             } catch (err) {
                 console.error("Erro ao acessar a câmera:", err);
-                setCameraError("Acesso à câmera negado. Por favor, permita o acesso à câmera nas configurações do seu navegador.");
+                setCameraError("Acesso à câmera negado. Por favor, permita o acesso à câmera nas configurações do seu navegador e tente novamente. Clique no ícone de câmera na página inicial para testar o acesso.");
             }
         }
     }, [stopCamera]);
@@ -998,7 +998,7 @@ const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey, apiKeyError, onSave
                             type="password"
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
-                            placeholder="AIzaSy..."
+                            placeholder="Cole sua chave API aqui..."
                             className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                         />
                         {apiKeyError && (
@@ -1872,8 +1872,9 @@ const App = () => {
             return;
         }
         
-        if (!apiKey.startsWith('AIza')) {
-            setApiKeyError('A chave da API do Google Gemini deve começar com "AIza".');
+        // Validação mais flexível: aceita qualquer chave com pelo menos 20 caracteres
+        if (apiKey.trim().length < 20) {
+            setApiKeyError('A chave da API parece muito curta. Verifique se copiou corretamente.');
             return;
         }
         

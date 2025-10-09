@@ -40,10 +40,29 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), 
-                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><radialGradient id="bg" cx="50%" cy="30%" r="70%"><stop offset="0%" style="stop-color:%23ffd700;stop-opacity:0.1"/><stop offset="100%" style="stop-color:%23000000;stop-opacity:1"/></radialGradient></defs><rect width="100%" height="100%" fill="url(%23bg)"/></svg>');
-            background-size: cover;
-            background-position: center;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        
+        /* Hero Background Image */
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('/pocket-studio-sign.jpg') center/cover no-repeat;
+            opacity: 0.3;
+            z-index: 1;
+        }
+        
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26,26,26,0.8) 0%, rgba(45,45,45,0.9) 100%);
         }
         
         .hero-content {
@@ -60,17 +79,38 @@
         }
         
         .logo {
-            font-size: clamp(3rem, 8vw, 8rem);
+            font-size: clamp(2.5rem, 6vw, 6rem);
             font-weight: 900;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
             color: #ffd700;
             text-shadow: 
-                0 0 20px rgba(255, 215, 0, 0.5),
-                0 0 40px rgba(255, 215, 0, 0.3),
-                0 4px 8px rgba(0, 0, 0, 0.8);
+                0 0 30px rgba(255, 215, 0, 0.8),
+                0 0 60px rgba(255, 215, 0, 0.5),
+                0 6px 12px rgba(0, 0, 0, 0.9),
+                2px 2px 0px rgba(0, 0, 0, 0.8);
             position: relative;
             display: inline-block;
-            transform: perspective(500px) rotateX(15deg);
+            transform: perspective(800px) rotateX(20deg);
+            text-transform: uppercase;
+            font-family: 'Caveat', cursive;
+            animation: logoGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes logoGlow {
+            0% {
+                text-shadow: 
+                    0 0 30px rgba(255, 215, 0, 0.8),
+                    0 0 60px rgba(255, 215, 0, 0.5),
+                    0 6px 12px rgba(0, 0, 0, 0.9),
+                    2px 2px 0px rgba(0, 0, 0, 0.8);
+            }
+            100% {
+                text-shadow: 
+                    0 0 40px rgba(255, 215, 0, 1),
+                    0 0 80px rgba(255, 215, 0, 0.7),
+                    0 8px 16px rgba(0, 0, 0, 0.9),
+                    2px 2px 0px rgba(0, 0, 0, 0.8);
+            }
         }
         
         .logo::after {
@@ -80,56 +120,68 @@
             left: 0;
             right: 0;
             height: 100%;
-            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
-            transform: scaleY(-1);
+            background: linear-gradient(180deg, transparent 0%, rgba(255,215,0,0.3) 50%, rgba(0,0,0,0.8) 100%);
+            transform: scaleY(-1) scaleX(0.95);
             z-index: -1;
-            filter: blur(2px);
-            opacity: 0.6;
+            filter: blur(3px);
+            opacity: 0.7;
+            border-radius: 4px;
         }
         
         /* Subtítulo */
         .subtitle {
             font-size: clamp(1.2rem, 3vw, 2rem);
             font-weight: 300;
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
             color: #e0e0e0;
             letter-spacing: 0.05em;
         }
         
-        /* Botões */
+        /* Descrição */
+        .description {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 300;
+            margin-bottom: 2rem;
+            color: #b0b0b0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        /* Botões CTA */
         .cta-buttons {
             display: flex;
-            gap: 1.5rem;
+            gap: 1rem;
             justify-content: center;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
-            margin-bottom: 4rem;
         }
         
         .btn {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            position: relative;
-            overflow: hidden;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
             color: #1a1a1a;
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
         }
         
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.6);
+            background: linear-gradient(135deg, #ffed4e 0%, #ffd700 100%);
         }
         
         .btn-secondary {
@@ -139,10 +191,23 @@
         }
         
         .btn-secondary:hover {
-            background: #ffd700;
-            color: #1a1a1a;
+            background: rgba(255, 215, 0, 0.1);
             transform: translateY(-2px);
         }
+        
+        .btn-icon {
+            font-size: 1.3rem;
+        }
+        
+        /* API Info */
+        .api-info {
+            font-size: 0.9rem;
+            color: #888;
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
         
         /* Features Grid */
         .features {
@@ -199,6 +264,85 @@
         .feature-card p {
             color: #e0e0e0;
             line-height: 1.6;
+        }
+        
+        /* How To Section */
+        .how-to {
+            padding: 5rem 2rem;
+            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+        }
+        
+        .how-to-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .how-to h2 {
+            text-align: center;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 3rem;
+            color: #ffd700;
+        }
+        
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .step-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            position: relative;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+        }
+        
+        .step-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+            color: #ffd700;
+        }
+        
+        .step-card p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        
+        .step-card a {
+            color: #ffd700;
+            text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+        
+        .step-card a:hover {
+            color: #ffed4e;
         }
         
         /* Stats Section */
@@ -265,15 +409,6 @@
         
         /* Responsive */
         @media (max-width: 768px) {
-            .cta-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .btn {
-                width: 100%;
-                max-width: 300px;
-            }
             
             .features-grid {
                 grid-template-columns: 1fr;
@@ -307,24 +442,82 @@
         .hero-content > *:nth-child(4) {
             animation-delay: 0.6s;
         }
+        
+        /* Botão Flutuante */
+        .floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.7);
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+            }
+            50% {
+                box-shadow: 0 6px 30px rgba(255, 215, 0, 0.8);
+            }
+        }
+        
+        .floating-btn-tooltip {
+            position: absolute;
+            right: 70px;
+            background: #1a1a1a;
+            color: #ffd700;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            border: 1px solid #ffd700;
+        }
+        
+        .floating-btn:hover .floating-btn-tooltip {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <!-- Hero Section -->
     <section class="hero">
+        <div class="hero-bg"></div>
         <div class="hero-content">
             <div class="logo-container">
                 <div class="logo">POCKET STUDIO</div>
             </div>
             <h1 class="subtitle">O estúdio fotográfico que cabe no seu bolso</h1>
+            <p class="description">Transforme suas fotos simples em retratos profissionais usando IA — sem precisar de câmeras, luzes ou fundo branco.</p>
             <div class="cta-buttons">
                 <a href="/app.html" class="btn btn-primary">
-                    🚀 Começar Agora
+                    <span class="btn-icon">✨</span>
+                    Começar Agora - Grátis
                 </a>
                 <a href="#features" class="btn btn-secondary">
-                    📱 Ver Demo
+                    <span class="btn-icon">📖</span>
+                    Saiba Mais
                 </a>
             </div>
+            <p class="api-info">🔑 Use sua própria chave API do Google Gemini (gratuita) ou qualquer chave compatível</p>
         </div>
     </section>
     
@@ -341,7 +534,7 @@
                 <div class="feature-card">
                     <span class="feature-icon">🤖</span>
                     <h3>IA Avançada</h3>
-                    <p>Powered by Google Gemini 2.0 Flash. Mantém suas características faciais enquanto transforma o estilo completamente.</p>
+                    <p>Powered by Google Gemini 2.0 Flash. Aceita qualquer chave API válida. Mantém suas características faciais enquanto transforma o estilo completamente.</p>
                 </div>
                 <div class="feature-card">
                     <span class="feature-icon">📱</span>
@@ -360,8 +553,32 @@
                 </div>
                 <div class="feature-card">
                     <span class="feature-icon">🔒</span>
-                    <h3>Privacidade Total</h3>
-                    <p>Suas fotos nunca saem do seu dispositivo. Processamento local e histórico privado garantem sua segurança.</p>
+                    <h3>Sua Chave, Suas Regras</h3>
+                    <p>Use qualquer chave API válida do Google Gemini. Totalmente flexível e sem restrições. Suas configurações são salvas localmente com total privacidade.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Como Usar Section -->
+    <section class="how-to" id="como-usar">
+        <div class="how-to-container">
+            <h2>Como Começar em 3 Passos</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Obtenha sua Chave API</h3>
+                    <p>Acesse o <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a> e crie sua chave API gratuita do Google Gemini. Qualquer formato de chave API válida é aceita!</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Configure o App</h3>
+                    <p>Abra o Pocket Studio, clique em configurações (⚙️) e cole sua chave API. Ela será salva localmente no seu dispositivo com total privacidade.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Crie suas Fotos!</h3>
+                    <p>Escolha um estilo, envie sua foto e deixe a IA transformar! Em poucos segundos você terá retratos profissionais incríveis.</p>
                 </div>
             </div>
         </div>
@@ -398,5 +615,11 @@
             <a href="#" class="social-link">📱</a>
         </div>
     </footer>
+    
+    <!-- Botão Flutuante de Acesso Rápido -->
+    <a href="/app.html" class="floating-btn" title="Começar Agora">
+        <span class="floating-btn-tooltip">Abrir App ✨</span>
+        🚀
+    </a>
 </body>
 </html>
