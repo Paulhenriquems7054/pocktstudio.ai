@@ -8,9 +8,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "vercel-build": "vite build",
-    "build:prod": "vite build --mode production"
+    "build:prod": "vite build --mode production",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "npm run build && npx cap sync android && npx cap open android",
+    "build:apk": "powershell -ExecutionPolicy Bypass -File build-apk.ps1"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
     "framer-motion": "^11.18.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
