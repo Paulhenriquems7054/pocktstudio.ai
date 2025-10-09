@@ -93,12 +93,10 @@ const generateDynamicPrompt = async (themeDescription) => {
 };
 
 
-const generateImageWithRetry = async (payload, totalAttempts = 3) => {
+const generateImageWithRetry = async (payload, apiKey, totalAttempts = 3) => {
     let lastError;
     for (let attempt = 1; attempt <= totalAttempts; attempt++) {
         try {
-            const apiKey = getApiKey(); // API Key do Google Gemini
-
             // Usamos gemini-2.5-flash-image-preview para tarefas de imagem-para-imagem/edição
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
             
@@ -2012,7 +2010,7 @@ const App = () => {
 
             const payload = { contents: [{ parts }] };
     
-            const imageUrl = await generateImageWithRetry(payload);
+            const imageUrl = await generateImageWithRetry(payload, getApiKey());
     
             setGeneratedImages(prev => prev.map((img, index) => {
                 if (index === imageIndex) {
@@ -2119,7 +2117,7 @@ const App = () => {
             ];
 
             const payload = { contents: [{ parts }] };
-            const newImageUrl = await generateImageWithRetry(payload);
+            const newImageUrl = await generateImageWithRetry(payload, getApiKey());
 
             setGeneratedImages(prev => prev.map((img, i) =>
                 i === index ? { 
@@ -2271,7 +2269,7 @@ const App = () => {
                 ];
                 
                 const payload = { contents: [{ parts }] };
-                const imageUrl = await generateImageWithRetry(payload);
+                const imageUrl = await generateImageWithRetry(payload, getApiKey());
 
                 const successImage = { ...placeholder, status: 'success', imageUrl };
                 setGeneratedImages([successImage]);
@@ -2432,7 +2430,7 @@ const App = () => {
 
                 const payload = { contents: [{ parts }] };
 
-                const imageUrl = await generateImageWithRetry(payload);
+                const imageUrl = await generateImageWithRetry(payload, getApiKey());
 
                 setGeneratedImages(prev => prev.map((img, index) => {
                     if (index === i) {
