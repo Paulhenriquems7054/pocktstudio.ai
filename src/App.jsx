@@ -181,7 +181,18 @@ const getModelInstruction = (template, prompt, options) => {
         case 'urbanoFuturista':
         case 'luxoNoturno':
         case 'undergroundFuturista':
-            baseInstruction = `A maior prioridade é manter exatamente as características faciais e a semelhança da pessoa na foto de referência. Transforme a imagem em uma foto de moda hiper-realista, de corpo inteiro, aplicando o seguinte estilo editorial: "${prompt.base}". Mude as roupas, o cenário e a iluminação para combinar com a descrição, mas não altere a estrutura facial ou o tipo de corpo da pessoa. A identidade deve ser preservada.`;
+            if (uploadedImage) {
+                baseInstruction = `A maior prioridade é manter exatamente as características faciais e a semelhança da pessoa na foto de referência. Transforme a imagem em uma foto de moda hiper-realista, de corpo inteiro, aplicando o seguinte estilo editorial: "${prompt.base}". Mude as roupas, o cenário e a iluminação para combinar com a descrição, mas não altere a estrutura facial ou o tipo de corpo da pessoa. A identidade deve ser preservada.`;
+            } else {
+                // Sem foto, limpar o prompt do tema para remover referências a "pessoa"
+                let cleanPrompt = prompt.base;
+                // Remover referências específicas a pessoa
+                cleanPrompt = cleanPrompt.replace(/A pessoa|da pessoa|A imagem.*pessoa|Imagem.*pessoa/gi, 'A cena');
+                cleanPrompt = cleanPrompt.replace(/vestindo|usa|usa calça|veste|com roupa/gi, 'com elementos de');
+                cleanPrompt = cleanPrompt.replace(/caminhando|em pé|sentada|de pé/gi, 'apresentando');
+                
+                baseInstruction = `Aplique o seguinte estilo visual e atmosfera: ${cleanPrompt}`;
+            }
             break;
         case 'spotlightPortrait':
             baseInstruction = `A maior prioridade é manter exatamente as características faciais e a semelhança da pessoa na foto de referência. Transforme a imagem em um retrato dramático em preto e branco, aplicando o seguinte estilo e cenário: "${prompt.base}". NÃO altere a estrutura facial principal da pessoa.`;
@@ -307,8 +318,26 @@ const getModelInstruction = (template, prompt, options) => {
 
     let finalInstruction = baseInstruction;
 
+    // Se o usuário digitou um prompt, ele tem PRIORIDADE sobre o tema
     if (mainPrompt && mainPrompt.trim() !== '' && template !== 'promptBased' && template !== 'figurinha') {
-        finalInstruction = `${finalInstruction} Adicionalmente, siga esta instrução específica do usuário: "${mainPrompt}".`;
+        // Para temas artísticos/estéticos, o prompt do usuário deve definir o CONTEÚDO, e o tema apenas o ESTILO
+        const artisticThemes = ['urbanoFuturista', 'undergroundFuturista', 'luxoNoturno', 'streetwearDeLuxo', 
+                                'fashionEditorial', 'cinematicPortrait', 'spotlightPortrait', 'cinematicStreetStyle',
+                                'shadowPortrait', 'viceCityStyle', 'urbanNeon', 'bwProfile', 'projectedSilhouette',
+                                'popMagazineCover', 'editorialTechRetro', 'mysteriousEditorial', 'architectStyle'];
+        
+        if (artisticThemes.includes(template)) {
+            // Para temas artísticos SEM foto, o prompt do usuário é o conteúdo principal
+            if (!uploadedImage) {
+                finalInstruction = `Crie uma imagem fotorrealista de alta qualidade baseada na seguinte descrição do usuário: "${mainPrompt}". Aplique o seguinte estilo visual e atmosfera: ${baseInstruction}`;
+            } else {
+                // Com foto, adiciona o prompt do usuário como modificação
+                finalInstruction = `${finalInstruction} Adicionalmente, incorpore esta descrição do usuário: "${mainPrompt}".`;
+            }
+        } else {
+            // Para outros temas, adiciona o prompt como complemento
+            finalInstruction = `${finalInstruction} Adicionalmente, siga esta instrução específica do usuário: "${mainPrompt}".`;
+        }
     }
     
     // Adiciona instruções de perspectiva
