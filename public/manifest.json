@@ -39,13 +39,13 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-512.png",
+      "src": "/play_store_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-1024.png",
+      "src": "/1024.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any maskable"
