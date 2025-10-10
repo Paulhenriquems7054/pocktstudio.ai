@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Share } from '@capacitor/share';
 
 // --- Funções Auxiliares ---
 // Nota: A funcionalidade permanece a mesma.
@@ -399,8 +403,9 @@ const Button = ({ children, onClick, disabled, primary = false, className = '' }
 };
 
 // UI: PhotoDisplay Modernizado
-const PhotoDisplay = ({ era, imageUrl, onDownload, onRegenerate, onEdit, onDelete, onShare, isPolaroid = true, index=0, showLabel = true }) => {
+const PhotoDisplay = ({ era, imageUrl, onDownload, onRegenerate, onEdit, onDelete, onShare, onSave, isPolaroid = true, index=0, showLabel = true }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const menuRef = useRef(null);
 
     // Fecha o menu ao clicar fora
@@ -413,6 +418,16 @@ const PhotoDisplay = ({ era, imageUrl, onDownload, onRegenerate, onEdit, onDelet
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+    
+    const handleDownloadClick = async (ratio) => {
+        setIsDownloading(true);
+        try {
+            await onDownload(imageUrl, era, ratio);
+        } finally {
+            setIsDownloading(false);
+            setIsMenuOpen(false);
+        }
+    };
 
     const rotation = useMemo(() => {
         if (!isPolaroid) return 'rotate-0';
@@ -467,15 +482,40 @@ const PhotoDisplay = ({ era, imageUrl, onDownload, onRegenerate, onEdit, onDelet
                         <button onClick={() => { onShare(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Partilhar</button>
                         <button onClick={() => { onEdit(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Editar</button>
                         <button onClick={() => { onRegenerate(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Gerar Novamente</button>
+                        {onSave && <button onClick={() => { onSave(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-green-400/20 rounded-md transition-colors text-green-400">💾 Salvar no Histórico</button>}
                         <button onClick={() => { onDelete(); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 text-red-400 hover:bg-red-500/20 rounded-md transition-colors">Apagar</button>
                         
                         <div className="my-1 h-px bg-white/10"></div>
                         
                         <span className="w-full text-left px-3 pt-1 pb-1 text-xs text-gray-500 uppercase tracking-wider">Baixar</span>
-                        <button onClick={() => { onDownload(imageUrl, era, '1:1'); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Quadrado (1:1)</button>
-                        <button onClick={() => { onDownload(imageUrl, era, '9:16'); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Retrato (9:16)</button>
-                        <button onClick={() => { onDownload(imageUrl, era, '16:9'); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Horizontal (16:9)</button>
-                        <button onClick={() => { onDownload(imageUrl, era, '2:7'); setIsMenuOpen(false); }} className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors">Marcador de Página (2:7)</button>
+                        <button 
+                            onClick={() => handleDownloadClick('1:1')} 
+                            disabled={isDownloading}
+                            className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isDownloading ? '⏳ Baixando...' : 'Quadrado (1:1)'}
+                        </button>
+                        <button 
+                            onClick={() => handleDownloadClick('9:16')} 
+                            disabled={isDownloading}
+                            className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isDownloading ? '⏳ Baixando...' : 'Retrato (9:16)'}
+                        </button>
+                        <button 
+                            onClick={() => handleDownloadClick('16:9')} 
+                            disabled={isDownloading}
+                            className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isDownloading ? '⏳ Baixando...' : 'Horizontal (16:9)'}
+                        </button>
+                        <button 
+                            onClick={() => handleDownloadClick('2:7')} 
+                            disabled={isDownloading}
+                            className="w-full text-left px-3 py-2 hover:bg-yellow-400/20 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isDownloading ? '⏳ Baixando...' : 'Marcador de Página (2:7)'}
+                        </button>
                     </motion.div>
                 )}
                 </AnimatePresence>
@@ -570,6 +610,11 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     const streamRef = useRef(null);
     const [capturedImage, setCapturedImage] = useState(null);
     const [cameraError, setCameraError] = useState(null);
+    const [isNative, setIsNative] = useState(false);
+
+    useEffect(() => {
+        setIsNative(Capacitor.isNativePlatform());
+    }, []);
 
     const stopCamera = useCallback(() => {
         if (streamRef.current) {
@@ -580,6 +625,59 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
             videoRef.current.srcObject = null;
         }
     }, []);
+
+    // Função para tirar foto usando o plugin Camera do Capacitor (Android/iOS)
+    const takeNativePhoto = useCallback(async () => {
+        try {
+            console.log("=== ABRINDO CÂMERA NATIVA ===");
+            
+            // Verificar e solicitar permissões
+            const permissions = await Camera.checkPermissions();
+            console.log("Permissões da câmera:", permissions);
+            
+            if (permissions.camera !== 'granted' || permissions.photos !== 'granted') {
+                console.log("Solicitando permissões da câmera...");
+                const requestResult = await Camera.requestPermissions({ permissions: ['camera', 'photos'] });
+                console.log("Resultado da solicitação:", requestResult);
+                
+                if (requestResult.camera !== 'granted') {
+                    setCameraError('⚠️ Permissão da câmera negada!\n\nPara usar a câmera, você precisa permitir o acesso nas configurações do app.');
+                    return;
+                }
+            }
+            
+            console.log("✓ Permissões OK - Abrindo câmera...");
+            
+            const image = await Camera.getPhoto({
+                quality: 90,
+                allowEditing: false,
+                resultType: CameraResultType.DataUrl,
+                source: CameraSource.Camera,
+                width: 1024,
+                height: 1024,
+                correctOrientation: true
+            });
+            
+            console.log("✅ Foto capturada com sucesso!");
+            
+            // Usar a imagem diretamente
+            if (image.dataUrl) {
+                onCapture(image.dataUrl);
+                onClose();
+            }
+            
+        } catch (error) {
+            console.error("❌ Erro ao abrir câmera nativa:", error);
+            if (error.message && error.message.includes('cancelled')) {
+                console.log("Usuário cancelou - fechando modal");
+                // Fechar o modal quando o usuário cancelar
+                onClose();
+            } else {
+                console.error("Erro na câmera:", error);
+                setCameraError(`Erro ao acessar a câmera: ${error.message}`);
+            }
+        }
+    }, [onCapture, onClose]);
 
     const startCamera = useCallback(async () => {
         if (videoRef.current) {
@@ -600,19 +698,35 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     }, [stopCamera]);
 
     useEffect(() => {
-        if (isOpen && !capturedImage) {
-            // O modal está aberto e devemos mostrar o feed da câmera ao vivo
-            startCamera();
+        console.log("CameraModal useEffect - isOpen:", isOpen, "isNative:", isNative);
+        
+        if (isOpen) {
+            if (isNative) {
+                // No modo nativo, abrir a câmera diretamente
+                console.log(">>> Modo nativo detectado - abrindo câmera do dispositivo");
+                // Pequeno delay para garantir que o modal está pronto
+                const timer = setTimeout(() => {
+                    takeNativePhoto();
+                }, 100);
+                return () => clearTimeout(timer);
+            } else if (!capturedImage) {
+                // No navegador, iniciar o stream de vídeo
+                console.log("Modo web - iniciando stream de vídeo");
+                startCamera();
+            } else {
+                stopCamera();
+            }
         } else {
-            // O modal está fechado ou estamos mostrando uma imagem capturada
+            console.log("Modal fechado - limpando estado");
             stopCamera();
+            setCameraError(null);
         }
 
         // Limpeza na desmontagem
         return () => {
             stopCamera();
         };
-    }, [isOpen, capturedImage, startCamera, stopCamera]);
+    }, [isOpen, isNative, capturedImage, startCamera, stopCamera, takeNativePhoto]);
 
 
     const handleCapture = () => {
@@ -637,10 +751,33 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
     };
 
     const handleRetake = () => {
-        setCapturedImage(null); // Isso fará com que o useEffect reinicie a câmera
+        if (isNative) {
+            takeNativePhoto();
+        } else {
+            setCapturedImage(null); // Isso fará com que o useEffect reinicie a câmera
+        }
     };
 
     if (!isOpen) return null;
+
+    // No modo nativo (Android/iOS), a câmera é aberta diretamente pelo sistema
+    // Então não precisamos renderizar o modal completo
+    if (isNative) {
+        return cameraError ? (
+            <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="bg-gray-900 rounded-2xl p-6 border border-gray-700 shadow-2xl w-full max-w-md text-center relative"
+                >
+                    <h3 className="text-2xl font-semibold mb-4 text-white">Erro de Câmera</h3>
+                    <div className="p-4 text-red-400 mb-4 whitespace-pre-line">{cameraError}</div>
+                    <Button onClick={onClose}>Fechar</Button>
+                </motion.div>
+            </div>
+        ) : null;
+    }
 
     return (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
@@ -720,7 +857,7 @@ const EditModal = ({ image, onClose, onApplyEdit, onEnhancePrompt }) => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2 }}
-                className="bg-gray-900 rounded-2xl p-6 border border-gray-700 shadow-2xl w-full max-w-4xl text-left relative max-h-[90vh] overflow-y-auto"
+                className="bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-gray-700 shadow-2xl w-full max-w-4xl text-left relative max-h-[90vh] overflow-y-auto"
             >
                 <div className="flex flex-col md:flex-row gap-8">
                     <div className="md:w-1/2">
@@ -870,7 +1007,7 @@ const ChatModal = ({ isOpen, onClose, chatHistory, chatInput, setChatInput, isLo
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.2 }}
-                className="bg-gray-900 rounded-2xl p-6 border-2 border-yellow-400 shadow-2xl w-full max-w-lg h-[90vh] flex flex-col relative"
+                className="bg-gray-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-yellow-400 shadow-2xl w-full max-w-lg h-[90vh] flex flex-col relative"
              >
                 <header className="pb-4 mb-4 border-b border-gray-700 flex justify-between items-center">
                     <h3 className="text-2xl font-semibold text-white flex items-center gap-3">
@@ -962,7 +1099,7 @@ const ChatModal = ({ isOpen, onClose, chatHistory, chatInput, setChatInput, isLo
 
 // UI: RadioPill Modernizado
 const RadioPill = ({ name, value, label, checked, onChange }) => (
-    <label className={`cursor-pointer px-3 py-1.5 text-sm rounded-full transition-colors font-semibold 
+    <label className={`cursor-pointer px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full transition-colors font-semibold 
         ${checked ? 'bg-yellow-400 text-black' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>
         <input
             type="radio"
@@ -983,13 +1120,13 @@ const TemplateCard = ({ id, name, icon, description, isSelected, onSelect, numIm
     return (
         <div
             onClick={() => onSelect(id)}
-            className={`cursor-pointer p-5 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 shadow-lg flex flex-col
+            className={`cursor-pointer p-3 sm:p-4 md:p-5 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg flex flex-col
             ${isSelected ? 'border-yellow-400 bg-yellow-900/20 ring-1 ring-yellow-400' : 'border-gray-700 bg-gray-900 hover:border-gray-600'}`}
         >
             <div className="flex-grow">
-                <div className="text-3xl mb-3">{icon}</div>
-                <h3 className="text-lg font-semibold text-white">{name}</h3>
-                <p className="text-sm text-gray-400 mt-1">{description}</p>
+                <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{icon}</div>
+                <h3 className="text-base sm:text-lg font-semibold text-white leading-tight">{name}</h3>
+                <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-snug">{description}</p>
             </div>
             <AnimatePresence>
                 {isSelected && !singleImageThemes.includes(id) && (
@@ -1080,7 +1217,7 @@ const HistoryPanel = ({ isOpen, onClose, history, onClearHistory, onEdit, onDele
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-gray-900 border-l border-gray-700 shadow-2xl z-50 flex flex-col"
+            className="fixed top-0 right-0 h-full w-full sm:w-96 md:max-w-md bg-gray-900 border-l border-gray-700 shadow-2xl z-50 flex flex-col"
           >
             <header className="flex items-center justify-between p-4 border-b border-gray-700">
               <h3 className="text-xl font-semibold text-white flex items-center gap-2">
@@ -1221,6 +1358,9 @@ const App = () => {
      // Lógica do Histórico
     useEffect(() => {
         try {
+            // Verificar se o histórico precisa ser limpo automaticamente
+            clearHistoryIfNeeded();
+            
             const storedHistory = localStorage.getItem('pictureMeHistory');
             if (storedHistory) {
                 setHistory(JSON.parse(storedHistory));
@@ -1294,6 +1434,27 @@ const App = () => {
     const handleClearHistory = () => {
         updateHistory([]);
     };
+
+    // Função para limpar histórico automaticamente se necessário
+    const clearHistoryIfNeeded = () => {
+        try {
+            const currentHistory = localStorage.getItem('pictureMeHistory');
+            if (currentHistory) {
+                const parsedHistory = JSON.parse(currentHistory);
+                if (parsedHistory.length > 8) {
+                    console.log("⚠️ Histórico muito grande, limpando automaticamente...");
+                    localStorage.removeItem('pictureMeHistory');
+                    setHistory([]);
+                    setHistoryNotification('⚠️ Histórico limpo automaticamente');
+                    setTimeout(() => setHistoryNotification(''), 3000);
+                }
+            }
+        } catch (e) {
+            console.error("Erro ao verificar histórico:", e);
+            localStorage.removeItem('pictureMeHistory');
+            setHistory([]);
+        }
+    };
     
     const handleDeleteHistoryImage = (timestampToDelete) => {
         const newHistory = history.filter(item => item.timestamp !== timestampToDelete);
@@ -1341,7 +1502,66 @@ const App = () => {
     };
     
     const handleDownloadHistoryImage = (image, ratio) => {
-        handleDownloadRequest(image.imageUrl, image.id, ratio);
+        console.log("=== DOWNLOAD DO HISTÓRICO ===");
+        console.log("Imagem:", image);
+        console.log("Ratio:", ratio);
+        
+        // Usar imagem original se disponível, senão usar a comprimida
+        const imageUrl = image.originalImageUrl || image.imageUrl;
+        console.log("URL da imagem para download:", imageUrl ? "Disponível" : "Não disponível");
+        
+        handleDownloadRequest(imageUrl, image.id, ratio);
+    };
+
+    // Função para comprimir imagem drasticamente antes de salvar no histórico
+    const compressImageForHistory = (imageUrl, quality = 0.1) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Reduzir drasticamente o tamanho para economia máxima de espaço
+                const maxWidth = 200;  // Reduzido de 400 para 200
+                const maxHeight = 200; // Reduzido de 400 para 200
+                let { width, height } = img;
+                
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = (width * maxHeight) / height;
+                        height = maxHeight;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Aplicar filtro de suavização para melhor qualidade em tamanho pequeno
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Usar qualidade muito baixa para JPEG
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                
+                console.log(`Imagem comprimida: ${width}x${height}, qualidade: ${quality}`);
+                console.log(`Tamanho original: ~${Math.round(imageUrl.length / 1024)}KB`);
+                console.log(`Tamanho comprimido: ~${Math.round(compressedDataUrl.length / 1024)}KB`);
+                
+                resolve(compressedDataUrl);
+            };
+            img.onerror = () => {
+                console.warn("Erro ao comprimir imagem, usando original");
+                resolve(imageUrl);
+            };
+            img.src = imageUrl;
+        });
     };
 
 
@@ -1768,36 +1988,95 @@ const App = () => {
     }), []);
 
     // Função para adicionar imagem ao histórico automaticamente
-    const addImageToHistory = (imageData) => {
+    const addImageToHistory = async (imageData) => {
+        console.log("=== SALVANDO NO HISTÓRICO ===");
+        console.log("Dados da imagem:", imageData);
+        
+        if (!imageData || !imageData.imageUrl) {
+            console.error("❌ Dados de imagem inválidos para salvar no histórico");
+            setHistoryNotification('❌ Erro: Imagem inválida');
+            setTimeout(() => setHistoryNotification(''), 3000);
+            return;
+        }
+
+        try {
+            // Comprimir a imagem antes de salvar
+            console.log("Comprimindo imagem para histórico...");
+            const compressedImageUrl = await compressImageForHistory(imageData.imageUrl);
+            console.log("✅ Imagem comprimida com sucesso");
+
         const historyEntry = {
             id: Date.now() + Math.random(),
             timestamp: new Date().toISOString(),
-            imageUrl: imageData.imageUrl,
+                imageUrl: compressedImageUrl, // Usar versão comprimida
+                originalImageUrl: imageData.imageUrl, // Manter original para downloads
             template: imageData.template,
             prompt: imageData.prompt,
             era: imageData.era,
             settings: getSettingsForHistory(),
+                proportion: imageData.proportion,
             ...imageData
         };
 
+            console.log("Entrada do histórico criada:", historyEntry);
+
         setHistory(prevHistory => {
             const newHistory = [historyEntry, ...prevHistory];
-            const limitedHistory = newHistory.slice(0, 50); // Limita a 50 itens
-            
-            try {
-                localStorage.setItem('pictureMeHistory', JSON.stringify(limitedHistory));
+                const limitedHistory = newHistory.slice(0, 5); // Reduzir para apenas 5 itens
                 
+                try {
+                    const historyString = JSON.stringify(limitedHistory);
+                    console.log(`Tentando salvar ${limitedHistory.length} itens no localStorage`);
+                    console.log(`Tamanho do histórico: ${historyString.length} caracteres`);
+                    
+                    localStorage.setItem('pictureMeHistory', historyString);
+                    
+                    // Verificar se foi realmente salvo
+                    const saved = localStorage.getItem('pictureMeHistory');
+                    if (saved) {
+                        console.log("✅ Histórico salvo com sucesso!");
                 // Mostrar notificação de sucesso
                 setHistoryNotification('✅ Imagem salva no histórico!');
                 setTimeout(() => setHistoryNotification(''), 3000);
+                    } else {
+                        throw new Error("Falha ao verificar salvamento");
+                    }
             } catch (e) {
-                console.error("Erro ao salvar no histórico:", e);
+                    console.error("❌ Erro ao salvar no histórico:", e);
+                    console.error("Nome do erro:", e.name);
+                    console.error("Mensagem:", e.message);
+                    
+                    // Se o erro for de quota excedida, limpar completamente
+                    if (e.name === 'QuotaExceededError') {
+                        console.log("⚠️ Quota excedida, limpando localStorage completamente...");
+                        try {
+                            // Limpar todo o localStorage relacionado
+                            localStorage.removeItem('pictureMeHistory');
+                            localStorage.removeItem('pictureMeSettings');
+                            
+                            setHistoryNotification('⚠️ Histórico limpo por espaço');
+                            setTimeout(() => setHistoryNotification(''), 3000);
+                            return []; // Retornar array vazio
+                        } catch (e2) {
+                            console.error("❌ Falha ao limpar histórico:", e2);
+                            // Se ainda falhar, não salvar nada
+                            setHistoryNotification('⚠️ Impossível salvar - localStorage cheio');
+                            setTimeout(() => setHistoryNotification(''), 3000);
+                            return [];
+                        }
+                    }
+                    
                 setHistoryNotification('❌ Erro ao salvar no histórico');
                 setTimeout(() => setHistoryNotification(''), 3000);
             }
             
             return limitedHistory;
         });
+        } catch (error) {
+            console.error("❌ Erro ao comprimir imagem:", error);
+            setHistoryNotification('❌ Erro ao processar imagem');
+            setTimeout(() => setHistoryNotification(''), 3000);
+        }
     };
 
     const regenerateImageAtIndex = async (imageIndex) => {
@@ -2012,6 +2291,19 @@ const App = () => {
         setGeneratedImages(prev => prev.filter((_, index) => index !== indexToDelete));
     };
 
+    const handleSaveToHistory = (index) => {
+        const image = generatedImages[index];
+        if (image && image.status === 'success') {
+            addImageToHistory({
+                imageUrl: image.imageUrl,
+                template: image.template,
+                prompt: image.prompt || mainPrompt,
+                era: image.id,
+                proportion: image.proportion
+            });
+        }
+    };
+
     const handleEnhancePrompt = async (promptToEnhance) => {
         if (!promptToEnhance.trim()) return null;
     
@@ -2109,6 +2401,9 @@ const App = () => {
     // --- END CHAT LOGIC ---
 
     const handleGenerateClick = async () => {
+        // Reset de estados que podem estar travados
+        setIsSettingUp(false);
+        setError(null);
         
         if (uploadedImage && directClothingImage) {
             setIsLoading(true);
@@ -2167,13 +2462,16 @@ const App = () => {
             return;
         }
 
-        if (!uploadedImage && mainPrompt.trim() === '') {
-            setError("Por favor, envie uma foto ou descreva uma imagem para começar!");
+        // Temas que EXIGEM foto
+        const themesRequiringPhoto = ['styleLookbook', 'hairStyler', 'figurines', 'headshots', 'directSwap'];
+        
+        if (!uploadedImage && mainPrompt.trim() === '' && !template) {
+            setError("Por favor, envie uma foto, descreva uma imagem ou escolha um tema!");
             return;
         }
 
-        if (template && !uploadedImage) {
-            setError(`Para usar o tema "${templates[template].name}", você precisa enviar uma foto.`);
+        if (template && !uploadedImage && themesRequiringPhoto.includes(template)) {
+            setError(`Para usar o tema "${templates[template]?.name || template}", você precisa enviar uma foto.`);
             return;
         }
         
@@ -2336,7 +2634,129 @@ const App = () => {
 
     const triggerDownload = async (href, fileName) => {
         try {
-            const response = await fetch(href);
+            console.log("=== INICIANDO DOWNLOAD ===");
+            console.log("Arquivo:", fileName);
+            console.log("URL:", href.substring(0, 100));
+            
+            // Verificar se está rodando em um ambiente nativo (Android/iOS)
+            const isNative = Capacitor.isNativePlatform();
+            const platform = Capacitor.getPlatform();
+            console.log("Plataforma:", platform);
+            console.log("É nativo?", isNative);
+            
+            if (isNative) {
+                console.log(">>> MODO ANDROID/iOS NATIVO <<<");
+                
+                try {
+                    // Verificar se o plugin Filesystem está disponível
+                    if (!Filesystem || !Filesystem.writeFile) {
+                        throw new Error("Plugin Filesystem não está disponível");
+                    }
+                    console.log("✓ Plugin Filesystem disponível");
+                    
+                    // Solicitar permissões primeiro (Android 6+)
+                    try {
+                        const permissions = await Filesystem.checkPermissions();
+                        console.log("Permissões atuais:", permissions);
+                        
+                        if (permissions.publicStorage !== 'granted') {
+                            console.log("Solicitando permissões...");
+                            const requestResult = await Filesystem.requestPermissions();
+                            console.log("Resultado da solicitação:", requestResult);
+                            
+                            if (requestResult.publicStorage !== 'granted') {
+                                alert('⚠️ Permissão negada!\n\nPara salvar imagens, você precisa permitir o acesso ao armazenamento nas configurações do app.');
+                                return;
+                            }
+                        }
+                        console.log("✓ Permissões OK");
+                    } catch (permError) {
+                        console.warn("Aviso ao verificar permissões:", permError);
+                        // Continuar mesmo com erro de permissão
+                    }
+                    
+                    // Converter a imagem para base64 se não estiver
+                    let base64Data = href;
+                    if (!href.startsWith('data:')) {
+                        console.log("Convertendo URL para base64...");
+                        const response = await fetch(href);
+                        if (!response.ok) {
+                            throw new Error(`Falha ao buscar imagem: ${response.status}`);
+                        }
+                        const blob = await response.blob();
+                        console.log("Blob obtido, tamanho:", blob.size);
+                        base64Data = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        });
+                        console.log("✓ Conversão para base64 concluída");
+                    }
+                    
+                    // Remover o prefixo data:image/png;base64, se existir
+                    const base64Content = base64Data.split(',')[1] || base64Data;
+                    console.log("Tamanho do base64:", base64Content.length);
+                    
+                    // Gerar nome de arquivo único com timestamp
+                    const timestamp = new Date().getTime();
+                    const uniqueFileName = `PocketStudio_${timestamp}_${fileName}`;
+                    console.log("Nome do arquivo:", uniqueFileName);
+                    
+                    // Tentar salvar no diretório externo primeiro (visível na galeria)
+                    console.log("Tentando salvar no armazenamento externo...");
+                    try {
+                        const result = await Filesystem.writeFile({
+                            path: `PocketStudio/${uniqueFileName}`,
+                            data: base64Content,
+                            directory: Directory.ExternalStorage,
+                            recursive: true
+                        });
+                        
+                        console.log("✅ SUCESSO! Arquivo salvo em:", result.uri);
+                        alert(`✅ Imagem salva com sucesso!\n\n📁 Local: Armazenamento/PocketStudio/\n📄 Arquivo: ${uniqueFileName}\n\n💡 Você pode encontrar a imagem na galeria ou no gerenciador de arquivos.`);
+                        return;
+                    } catch (externalError) {
+                        console.warn("Não foi possível salvar no armazenamento externo:", externalError);
+                        console.log("Tentando salvar em Documents...");
+                        
+                        // Fallback para Documents
+                        const result = await Filesystem.writeFile({
+                            path: uniqueFileName,
+                            data: base64Content,
+                            directory: Directory.Documents,
+                            recursive: true
+                        });
+                        
+                        console.log("✅ Arquivo salvo em Documents:", result.uri);
+                        alert(`✅ Imagem salva!\n\n📁 Local: Documentos do App\n📄 Arquivo: ${uniqueFileName}\n\n💡 Acesse através do gerenciador de arquivos.`);
+                        return;
+                    }
+                    
+                } catch (nativeError) {
+                    console.error("❌ ERRO NO MODO NATIVO:", nativeError);
+                    alert(`❌ Erro ao salvar imagem:\n\n${nativeError.message}\n\nTente novamente ou entre em contato com o suporte.`);
+                    throw nativeError;
+                }
+            }
+            
+            // Para navegadores web (não nativo)
+            console.log("Usando método de download para navegador web");
+            
+            // Se for um data URL, fazer download direto
+            if (href.startsWith('data:')) {
+                const link = document.createElement('a');
+                link.href = href;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log("Download concluído (data URL)");
+                return;
+            }
+            
+            // Para URLs remotas, tentar fazer fetch
+            const response = await fetch(href, { mode: 'cors' });
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -2346,20 +2766,46 @@ const App = () => {
             link.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(link);
+            console.log("Download concluído (remote URL)");
         } catch (error) {
             console.error("Não foi possível baixar a imagem:", error);
-            setError(`Desculpe, o download falhou. ${error.message}`);
+            // Tentar método alternativo
+            try {
+                console.log("Tentando método alternativo de download...");
+                const link = document.createElement('a');
+                link.href = href;
+                link.download = fileName;
+                link.target = '_blank';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log("Download iniciado com método alternativo");
+            } catch (altError) {
+                console.error("Método alternativo também falhou:", altError);
+                setError(`Desculpe, o download falhou. Erro: ${error.message}`);
+            }
         }
     };
 
     const handleDownloadRequest = async (imageUrl, era, ratio) => {
-        const fileName = `alterart-ia-${era.toLowerCase().replace(/\s+/g, '-')}-${ratio.replace(':', 'x')}.png`;
+        console.log("handleDownloadRequest chamado:", { imageUrl, era, ratio });
+        // Converter era para string se for número
+        const eraString = String(era);
+        const fileName = `pocket-studio-${eraString.toLowerCase().replace(/\s+/g, '-')}-${ratio.replace(':', 'x')}.png`;
         try {
             const croppedImageUrl = await cropImage(imageUrl, ratio);
+            console.log("Imagem cortada com sucesso");
             await triggerDownload(croppedImageUrl, fileName);
         } catch (err) {
             console.error(`Falha ao cortar imagem para download:`, err);
-            setError(`Não foi possível preparar essa imagem para download. ${err.message}`);
+            // Se o crop falhar, tentar baixar a imagem original
+            console.log("Tentando baixar imagem original sem cortar...");
+            try {
+                await triggerDownload(imageUrl, `pocket-studio-${eraString.toLowerCase().replace(/\s+/g, '-')}-original.png`);
+            } catch (downloadErr) {
+                console.error("Falha ao baixar imagem original:", downloadErr);
+                setError(`Não foi possível baixar a imagem. Por favor, clique com o botão direito na imagem e selecione "Salvar imagem como..."`);
+            }
         }
     };
 
@@ -2422,23 +2868,116 @@ const App = () => {
     };
     
     const handleShare = async (imageUrl, era) => {
-        if (!navigator.share) {
-            setError("A partilha não é suportada neste navegador.");
-            return;
-        }
         try {
+            console.log("=== INICIANDO COMPARTILHAMENTO ===");
+            console.log("URL da imagem:", imageUrl.substring(0, 100));
+            console.log("Nome:", era);
+            
+            const isNative = Capacitor.isNativePlatform();
+            console.log("Plataforma nativa?", isNative);
+            
+            if (isNative) {
+                // Usar plugin Share do Capacitor no Android/iOS
+                console.log(">>> USANDO SHARE NATIVO <<<");
+                
+                try {
+                    // Verificar se o plugin está disponível
+                    if (!Share || !Share.share) {
+                        throw new Error("Plugin Share não está disponível");
+                    }
+                    
+                    console.log("✓ Plugin Share disponível");
+                    
+                    // Para compartilhar imagens no Android, precisamos salvar primeiro
+                    // e depois compartilhar o caminho do arquivo
+                    console.log("Convertendo imagem para base64...");
+                    
+                    let base64Data = imageUrl;
+                    if (!imageUrl.startsWith('data:')) {
+                        const response = await fetch(imageUrl);
+                        const blob = await response.blob();
+                        base64Data = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(blob);
+                        });
+                    }
+                    
+                    const base64Content = base64Data.split(',')[1] || base64Data;
+                    const eraString = String(era);
+                    const fileName = `pocket-studio-${eraString.toLowerCase().replace(/\s+/g, '-')}.png`;
+                    
+                    console.log("Salvando imagem temporariamente...");
+                    
+                    // Salvar temporariamente para compartilhar
+                    const result = await Filesystem.writeFile({
+                        path: `share/${fileName}`,
+                        data: base64Content,
+                        directory: Directory.Cache,
+                        recursive: true
+                    });
+                    
+                    console.log("Arquivo salvo em:", result.uri);
+                    
+                    // Compartilhar usando o plugin
+                    await Share.share({
+                        title: 'Imagem Gerada por PocketStudio',
+                        text: `Veja a imagem "${era}" que criei com o PocketStudio!`,
+                        url: result.uri,
+                        dialogTitle: 'Compartilhar Imagem'
+                    });
+                    
+                    console.log("✅ Compartilhamento concluído!");
+                    
+                } catch (shareError) {
+                    console.error("❌ Erro no compartilhamento nativo:", shareError);
+                    
+                    // Fallback: tentar compartilhar só texto com link (se houver)
+                    try {
+                        await Share.share({
+                            title: 'PocketStudio',
+                            text: `Criei esta imagem "${era}" com o PocketStudio!`,
+                            dialogTitle: 'Compartilhar'
+                        });
+                    } catch (fallbackError) {
+                        console.error("Fallback também falhou:", fallbackError);
+                        setError(`Não foi possível compartilhar: ${shareError.message}`);
+                    }
+                }
+                
+                return;
+            }
+            
+            // Modo navegador web - usar Web Share API
+            console.log(">>> USANDO WEB SHARE API <<<");
+            
+            if (!navigator.share) {
+                setError("O compartilhamento não é suportado neste navegador.");
+                return;
+            }
+            
+            console.log("Preparando arquivo para compartilhar...");
             const response = await fetch(imageUrl);
             const blob = await response.blob();
-            const file = new File([blob], `alterart-ia-${era}.png`, { type: blob.type });
+            const file = new File([blob], `pocket-studio-${era}.png`, { type: blob.type });
 
+            console.log("Compartilhando via Web Share API...");
             await navigator.share({
                 title: `Imagem Gerada por PocketStudio`,
                 text: `Veja a imagem "${era}" que criei com a aplicação PocketStudio!`,
                 files: [file],
             });
+            
+            console.log("✅ Compartilhamento concluído!");
+            
         } catch (error) {
-            console.error('Erro ao partilhar', error);
-            setError(`Não foi possível partilhar a imagem. ${error.message}`);
+            console.error('❌ Erro ao partilhar:', error);
+            if (error.name === 'AbortError') {
+                console.log("Usuário cancelou o compartilhamento");
+                // Não mostrar erro se o usuário cancelou
+            } else {
+                setError(`Não foi possível compartilhar a imagem. ${error.message}`);
+            }
         }
     };
 
@@ -2554,10 +3093,24 @@ const App = () => {
 
     const buttonText = uploadedImage && directClothingImage ? "Trocar Roupa" : "Gerar Fotos";
     
-    const canGenerateWithPromptOnly = !uploadedImage && mainPrompt.trim() !== '' && !!proportion;
+    // Temas que EXIGEM foto
+    const themesRequiringImage = ['styleLookbook', 'hairStyler', 'figurines', 'headshots', 'directSwap'];
+    const selectedThemeRequiresImage = template && themesRequiringImage.includes(template);
+    
+    // Pode gerar apenas com prompt (sem foto, sem tema que exija foto)
+    const canGenerateWithPromptOnly = !uploadedImage && mainPrompt.trim() !== '' && !!proportion && !selectedThemeRequiresImage;
+    
+    // Pode gerar com tema que não exige foto
+    const canGenerateWithThemeOnly = !uploadedImage && template && !selectedThemeRequiresImage && !!proportion;
+    
+    // Pode gerar com foto
     const canGenerateWithImage = uploadedImage && (template || mainPrompt.trim() !== '' || directClothingImage) && !!proportion;
-    const isReadyToGenerate = canGenerateWithPromptOnly || canGenerateWithImage;
+    
+    const isReadyToGenerate = canGenerateWithPromptOnly || canGenerateWithThemeOnly || canGenerateWithImage;
     const isGenerateButtonDisabled = isLoading || isUploading || isUploadingDirectClothing || isSettingUp || !isReadyToGenerate;
+    
+    
+    
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -2662,23 +3215,23 @@ const App = () => {
             </div>
 
 
-            <div className="bg-black text-gray-200 min-h-screen flex flex-col items-center p-4 pb-20">
+            <div className="bg-black text-gray-200 min-h-screen flex flex-col items-center px-2 sm:px-4 pb-20">
                 <div className="w-full max-w-6xl mx-auto">
                     
-                    <header className="text-center my-12">
-                        <h1 className="text-6xl md:text-7xl font-caveat text-white tracking-tight">
+                    <header className="text-center my-6 sm:my-12 px-2">
+                        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-caveat text-white tracking-tight">
                             Pocket<span className="text-yellow-400">Studio</span>
                         </h1>
-                        <p className="mt-4 text-lg text-gray-500">O PocketStudio é o estúdio que cabe no seu bolso.</p>
-                        <p className="text-md text-gray-500">Com tecnologia de IA, ele transforma suas fotos simples em retratos dignos de um estúdio profissional — sem precisar de câmeras, luzes ou fundo branco, e sem precisar sair de casa.</p>
+                        <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-500 px-2">O PocketStudio é o estúdio que cabe no seu bolso.</p>
+                        <p className="text-sm sm:text-md text-gray-500 mt-2 px-2">Com tecnologia de IA, ele transforma suas fotos simples em retratos dignos de um estúdio profissional — sem precisar de câmeras, luzes ou fundo branco, e sem precisar sair de casa.</p>
                     </header>
 
                     <main>
-                        <div className="bg-gray-900/50 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-gray-800 mb-16">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <div className="bg-gray-900/50 backdrop-blur-sm p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xl border border-gray-800 mb-16">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
 
                                 <div className="relative">
-                                    <h2 className="text-2xl font-semibold mb-6 text-white">1. Sua Foto <span className="text-base text-gray-500 font-normal">(Opcional)</span></h2>
+                                    <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-white">1. Sua Foto <span className="text-sm sm:text-base text-gray-500 font-normal">(Opcional)</span></h2>
                                     <div 
                                         className={`w-full aspect-square border-4 border-dashed  rounded-xl flex items-center justify-center transition-colors bg-gray-800 overflow-hidden shadow-inner relative group ${!uploadedImage && 'cursor-pointer hover:border-yellow-400'} ${isDragging ? 'border-yellow-400 ring-4 ring-yellow-400/50' : 'border-gray-700'}`}
                                         onClick={() => !uploadedImage && fileInputRef.current && fileInputRef.current.click()}
@@ -2735,7 +3288,7 @@ const App = () => {
                                 </div>
 
                                 <div>
-                                     <h2 className="text-2xl font-semibold mb-6 text-white">2. Detalhes da Geração</h2>
+                                     <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-white">2. Detalhes da Geração</h2>
                                      
                                      <div>
                                         <label htmlFor="main-prompt" className="block text-lg font-semibold text-gray-300 mb-2">Descreva sua Ideia</label>
@@ -2863,7 +3416,7 @@ const App = () => {
                                                 exit={{ height: 0, opacity: 0, marginTop: 0 }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                                                     {Object.entries(templates).map(([key, data]) => (
                                                         <TemplateCard
                                                             key={key}
@@ -3256,7 +3809,7 @@ const App = () => {
                                             <p className="text-gray-400 mt-4 text-sm">Por favor, mantenha esta janela aberta enquanto suas fotos são geradas.</p>
                                         </div>
                                     )}
-                                     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-10 mt-8 ${
+                                     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-10 mt-6 sm:mt-8 ${
                                          generatedImages.length > 0 && generatedImages[0].template === 'hairStyler' && haircutImage 
                                             ? 'lg:grid-cols-1 justify-center max-w-sm mx-auto' 
                                             : generatedImages.length > 0 && generatedImages[0].template === 'styleLookbook' && clothingImage 
@@ -3264,8 +3817,8 @@ const App = () => {
                                             : generatedImages.length > 0 && ['personalizar', 'promptBased', 'directSwap', 'figurinha', 'spotlightPortrait', 'cinematicStreetStyle', 'shadowPortrait', 'viceCityStyle', 'urbanNeon', 'bwProfile', 'projectedSilhouette', 'popMagazineCover', 'editorialTechRetro', 'mysteriousEditorial', 'architectStyle'].includes(generatedImages[0].template)
                                             ? 'lg:grid-cols-1 justify-center max-w-md mx-auto'
                                             : generatedImages.length > 3
-                                            ? 'lg:grid-cols-4'
-                                            : 'lg:grid-cols-3'
+                                            ? 'md:grid-cols-3 lg:grid-cols-4'
+                                            : 'md:grid-cols-2 lg:grid-cols-3'
                                         }`}>
                                         <AnimatePresence>
                                         {generatedImages.map((img, index) => {
@@ -3289,6 +3842,7 @@ const App = () => {
                                                         onEdit={() => handleEditRequest(index)}
                                                         onDelete={() => handleDeleteImage(index)}
                                                         onShare={() => handleShare(img.imageUrl, img.id)}
+                                                        onSave={() => handleSaveToHistory(index)}
                                                         isPolaroid={isPolaroid}
                                                         index={index}
                                                         showLabel={showLabel}
