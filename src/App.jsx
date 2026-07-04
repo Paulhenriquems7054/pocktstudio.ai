@@ -99,15 +99,17 @@ const generateDynamicPrompt = async (themeDescription) => {
 
 const generateImageWithRetry = async (payload, apiKey, totalAttempts = 3) => {
     let lastError;
+    const endpoint = '/api/gemini';
+
     for (let attempt = 1; attempt <= totalAttempts; attempt++) {
         try {
-            // Usamos gemini-2.5-flash-image-preview para tarefas de imagem-para-imagem/edição
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-            
-            const result = await fetchWithRetry(apiUrl, {
+            const result = await fetchWithRetry(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    model: 'gemini-2.5-flash-image-preview',
+                    payload
+                })
             });
             
             const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
@@ -1300,8 +1302,8 @@ const HistoryPanel = ({ isOpen, onClose, history, onClearHistory, onEdit, onDele
 };
 
 const App = () => {
-    // Chave da API do Google Gemini
-    const GEMINI_API_KEY = 'AIzaSyCjwufovXiyRvoNdUJIawZlEpBsLlaT2Hw';
+    // A chave agora é mantida no servidor/Vercel via endpoint /api/gemini
+    const GEMINI_API_KEY = '';
     
     // Estado principal
     const [uploadedImage, setUploadedImage] = useState(null);
@@ -2341,13 +2343,15 @@ const App = () => {
             contents: [{ parts: [{ text: promptToEnhance }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
         };
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
 
         try {
-            const result = await fetchWithRetry(apiUrl, {
+            const result = await fetchWithRetry('/api/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    model: 'gemini-2.5-flash-preview-05-20',
+                    payload
+                })
             });
             const enhancedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
             if (enhancedText) {
@@ -2402,12 +2406,13 @@ const App = () => {
                 systemInstruction: { parts: [{ text: CHAT_SYSTEM_PROMPT }] }
             };
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
-
-            const result = await fetchWithRetry(apiUrl, {
+            const result = await fetchWithRetry('/api/gemini', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    model: 'gemini-2.5-flash-preview-05-20',
+                    payload
+                })
             });
 
             const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
