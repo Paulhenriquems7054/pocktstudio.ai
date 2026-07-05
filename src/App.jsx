@@ -15,6 +15,33 @@ const toBase64 = file => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
+const compressImageToBase64 = (dataUrl, maxWidth = 1024, quality = 0.8) => new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / img.width);
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((blob) => {
+            if (!blob) {
+                reject(new Error('Falha ao comprimir a imagem.'));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        }, 'image/jpeg', quality);
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+});
+
 const fetchWithRetry = (url, options, retries = 5, backoff = 1000) => {
     return new Promise((resolve, reject) => {
         const attempt = async (retryCount, delay) => {
@@ -2222,7 +2249,13 @@ const App = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const base64Image = await toBase64(file);
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            const base64Image = await compressImageToBase64(dataUrl);
             setImage(base64Image);
         } catch (err) {
             console.error("Erro no envio da imagem de referência:", err);
@@ -2244,7 +2277,13 @@ const App = () => {
             setIsUploading(true);
             setError(null);
             try {
-                const base64Image = await toBase64(file);
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                const base64Image = await compressImageToBase64(dataUrl);
                 setUploadedImage(base64Image);
                 setGeneratedImages([]); 
             } catch (err) {
@@ -2258,7 +2297,7 @@ const App = () => {
     
     const handleCaptureConfirm = async (imageDataUrl) => {
         try {
-            const base64Image = imageDataUrl.split(',')[1];
+            const base64Image = await compressImageToBase64(imageDataUrl);
             setUploadedImage(base64Image);
             setGeneratedImages([]);
             setError(null);

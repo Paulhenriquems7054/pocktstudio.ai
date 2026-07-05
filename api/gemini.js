@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     if (!apiKey) {
       return res.status(500).json({
         error: 'Chave da API do Gemini não configurada no Vercel.',
-        hint: 'Adicione GEMINI_API_KEY (ou VITE_GEMINI_API_KEY) nas Environment Variables do projeto e faça um novo deploy.'
+        hint: 'Adicione GEMINI_API_KEY nas Environment Variables do projeto e faça um novo deploy.'
       });
     }
 
@@ -28,7 +28,14 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json().catch(() => ({}));
+    const rawText = await response.text();
+    let data = {};
+
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      data = { raw: rawText };
+    }
 
     if (!response.ok) {
       return res.status(response.status).json({
