@@ -134,7 +134,7 @@ const generateImageWithRetry = async (payload, apiKey, totalAttempts = 3) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gemini-2.5-flash-image-preview',
+                    model: 'gemini-2.0-flash-exp-image-generation',
                     payload
                 })
             });
@@ -2388,7 +2388,7 @@ const App = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gemini-2.5-flash-preview-05-20',
+                    model: 'gemini-2.0-flash-exp',
                     payload
                 })
             });
@@ -2449,7 +2449,7 @@ const App = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'gemini-2.5-flash-preview-05-20',
+                    model: 'gemini-2.0-flash-exp',
                     payload
                 })
             });
